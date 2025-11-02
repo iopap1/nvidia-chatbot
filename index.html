@@ -16,7 +16,9 @@
       margin: 0;
       padding: 2rem;
     }
-    h1 { color: #00ff99; }
+    h1 {
+      color: #00ff99;
+    }
     #chat-box {
       width: 80%;
       max-width: 700px;
@@ -26,12 +28,18 @@
       overflow-y: auto;
       height: 70vh;
       margin-bottom: 1rem;
+      box-shadow: 0 0 10px rgba(0, 255, 153, 0.2);
     }
     .message {
       margin-bottom: 1rem;
+      line-height: 1.4;
     }
-    .user { color: #38bdf8; }
-    .bot { color: #facc15; }
+    .user {
+      color: #38bdf8;
+    }
+    .bot {
+      color: #facc15;
+    }
     input {
       width: 70%;
       padding: 10px;
@@ -48,7 +56,9 @@
       background-color: #00ff99;
       cursor: pointer;
     }
-    button:hover { background-color: #22c55e; }
+    button:hover {
+      background-color: #22c55e;
+    }
   </style>
 </head>
 <body>
@@ -70,18 +80,30 @@
       chatBox.innerHTML += `<div class="message user"><b>You:</b> ${question}</div>`;
       input.value = "";
 
-      // Call backend
-      const response = await fetch("http://127.0.0.1:8000/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
+      // Show "Bot is typing..." message
+      const loadingMsg = document.createElement("div");
+      loadingMsg.className = "message bot";
+      loadingMsg.innerHTML = "<b>Bot:</b> ...thinking...";
+      chatBox.appendChild(loadingMsg);
+      chatBox.scrollTop = chatBox.scrollHeight;
 
-      const data = await response.json();
-      const answer = data.answer || data.error || "Error fetching response.";
+      try {
+        // Send request to backend (works on Render and locally)
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
 
-      // Show bot's message
-      chatBox.innerHTML += `<div class="message bot"><b>Bot:</b> ${answer}</div>`;
+        const data = await response.json();
+        const answer = data.answer || data.error || "Error fetching response.";
+
+        // Replace loading message with actual response
+        loadingMsg.innerHTML = `<b>Bot:</b> ${answer}`;
+      } catch (err) {
+        loadingMsg.innerHTML = `<b>Bot:</b> Error connecting to server.`;
+      }
+
       chatBox.scrollTop = chatBox.scrollHeight;
     }
   </script>
